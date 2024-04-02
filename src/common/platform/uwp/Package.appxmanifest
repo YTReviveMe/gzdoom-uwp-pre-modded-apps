@@ -8,7 +8,7 @@
   <Identity
     Name="d19ff9e2-fbcc-4ab7-969e-c3d7d7b842f3"
     Publisher="CN=aerisarn"
-    Version="1.0.1.0" />
+    Version="1.0.2.0" />
 
   <mp:PhoneIdentity PhoneProductId="d19ff9e2-fbcc-4ab7-969e-c3d7d7b842f3" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
