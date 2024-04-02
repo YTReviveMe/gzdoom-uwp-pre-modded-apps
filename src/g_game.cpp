@@ -2190,7 +2190,9 @@ CCMD(opensaves)
 {
 	FString name = G_GetSavegamesFolder();
 	CreatePath(name.GetChars());
+#ifndef _WINDOWS_UWP
 	I_OpenShellFolder(name.GetChars());
+#endif
 }
 
 CVAR (Int, autosavenum, 0, CVAR_NOSET|CVAR_ARCHIVE|CVAR_GLOBALCONFIG)

@@ -97,7 +97,7 @@ namespace swrenderer
 			(r_deathcamera && Thread->Viewport->viewpoint.camera->health <= 0))
 			return;
 		
-		FDynamicColormap *basecolormap;
+		FDynamicColormap *basecolormap = nullptr;
 		CameraLight *cameraLight = CameraLight::Instance();
 		auto nc = !!(Thread->Viewport->Level()->flags3 & LEVEL3_NOCOLOREDSPRITELIGHTING);
 

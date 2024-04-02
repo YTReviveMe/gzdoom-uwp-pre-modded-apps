@@ -74,6 +74,7 @@ FIND_PATH(SDL2_INCLUDE_DIR SDL.h
   /opt/csw # Blastwave
   /opt
   /boot/system/develop/headers/SDL2 #Hiaku OS
+  ${CMAKE_BINARY_DIR}/SDL-uwp-gl
 )
 #MESSAGE("SDL2_INCLUDE_DIR is ${SDL2_INCLUDE_DIR}")
 
@@ -88,6 +89,7 @@ FIND_LIBRARY(SDL2_LIBRARY_TEMP
   /opt/csw
   /opt
   /system/lib #Hiaku OS
+  ${CMAKE_BINARY_DIR}/SDL-uwp-gl/VisualC-WinRT/x64/Release/SDL-UWP
 )
 
 #MESSAGE("SDL2_LIBRARY_TEMP is ${SDL2_LIBRARY_TEMP}")

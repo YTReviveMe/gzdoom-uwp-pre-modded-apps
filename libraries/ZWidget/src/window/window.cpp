@@ -2,7 +2,7 @@
 #include "window/window.h"
 #include <stdexcept>
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(_WINDOWS_UWP) 
 
 #include "win32/win32window.h"
 

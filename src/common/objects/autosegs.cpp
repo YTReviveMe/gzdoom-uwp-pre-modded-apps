@@ -81,10 +81,29 @@ AUTOSEG_VARIABLE(CVarDecl, AUTOSEG_VREG)
 #undef AUTOSEG_STOP
 #undef AUTOSEG_START
 
+#ifdef _WINDOWS_UWP
+PIMAGE_NT_HEADERS ImageNtHeader(void* hFileContent)
+{
+	const auto pImageDOSHeader = (PIMAGE_DOS_HEADER)hFileContent;
+	if (pImageDOSHeader == nullptr)
+	{
+		return NULL;
+	}
+
+	const auto pImageNTHeader = (PIMAGE_NT_HEADERS)((DWORD_PTR)hFileContent + pImageDOSHeader->e_lfanew);
+	if (pImageNTHeader == nullptr)
+	{
+		return NULL;
+	}
+
+	return pImageNTHeader;
+}
+#endif
+
 
 void FAutoSeg::Initialize()
 {
-#ifdef _WIN32
+#if _WIN32
 
 	const HMODULE selfModule = GetModuleHandle(nullptr);
 	const SIZE_T baseAddress = reinterpret_cast<SIZE_T>(selfModule);

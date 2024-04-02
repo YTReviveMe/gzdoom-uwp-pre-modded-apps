@@ -829,7 +829,7 @@ void MapLoader::FixHoles()
 		auto *segloop = &segloops.Last();
 
 		seg_t *startseg = nullptr;
-		seg_t *checkseg;
+		seg_t *checkseg = nullptr;
 		while (bogussegs.Size() > 0)
 		{
 			bool foundsome = false;

@@ -29,15 +29,15 @@
     "dependencies": [
         {
             "name": "bzip2",
-            "platform": "(!windows & static) | (windows & static & staticcrt)"
+            "platform": "(!windows & static) | (windows & static & staticcrt) | (windows & static & uwp)"
         },
         {
             "name": "libvpx",
-            "platform": "!windows & static"
+            "platform": "(!windows & static) | (windows & static & uwp)"
         },
         {
             "name": "libwebp",
-            "platform": "(!windows & static) | (windows & static & staticcrt)"
+            "platform": "(!windows & static) | (windows & static & staticcrt) | (windows & static & uwp)"
         },
 	{
             "name": "gtk3",

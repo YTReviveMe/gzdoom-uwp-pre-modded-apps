@@ -75,8 +75,9 @@ cmake -A x64 -S .. -B . ^
 	-DZMUSIC_INCLUDE_DIR=./zmusic/include ^
 	-DZMUSIC_LIBRARIES=./zmusic/build/source/Release/zmusic.lib ^
 	-DVCPKG_INSTALLLED_DIR=./vcpkg_installed/
-cmake --build . --config RelWithDebInfo -- -maxcpucount -verbosity:minimal
+cmake --build . --config Release -- -maxcpucount -verbosity:minimal
+cmake --build . --config Debug -- -maxcpucount -verbosity:minimal
 
 rem -- If successful, show the build
-if not errorlevel 1 if exist RelWithDebInfo\gzdoom.exe explorer.exe RelWithDebInfo
+if not errorlevel 1 if exist Release\gzdoom.exe explorer.exe Release
 

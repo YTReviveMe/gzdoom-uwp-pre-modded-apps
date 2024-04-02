@@ -456,9 +456,11 @@ void FIWadManager::CollectSearchPaths()
 			}
 		}
 	}
+#ifndef _WINDOWS_UWP
 	mSearchPaths.Append(I_GetGogPaths());
 	mSearchPaths.Append(I_GetSteamPath());
 	mSearchPaths.Append(I_GetBethesdaPath());
+#endif
 
 	// Unify and remove trailing slashes
 	for (auto &str : mSearchPaths)

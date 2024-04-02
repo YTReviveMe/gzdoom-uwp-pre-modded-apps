@@ -76,7 +76,7 @@ EXTERN_CVAR(Int, wipetype)
 EXTERN_CVAR(Bool, i_pauseinbackground)
 EXTERN_CVAR(Bool, i_soundinbackground)
 
-#ifdef _WIN32
+#if defined (_WIN32) && ! defined (_WINDOWS_UWP) 
 EXTERN_CVAR(Int, in_mouse)
 #endif
 
@@ -554,7 +554,7 @@ void FGameConfigFile::DoGlobalSetup ()
 			if (last < 221)
 			{
 				// Transfer the messed up mouse scaling config to something sane and consistent.
-#ifndef _WIN32
+#if !defined(_WIN32) || defined(_WINDOWS_UWP)
 				double xfact = 3, yfact = 2;
 #else
 				double xfact = in_mouse == 1? 1.5 : 4, yfact = 1;

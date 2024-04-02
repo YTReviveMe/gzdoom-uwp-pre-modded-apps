@@ -86,8 +86,10 @@ static void CheckOpenGL(void)
 		}
 		else
 		{
+#ifndef _WINDOWS_UWP
 			// Should this ever happen we have no choice but to hard abort, there is no good way to recover.
 			MessageBoxA(0, "OpenGL32.dll not found", "Fatal error", MB_OK | MB_ICONERROR | MB_TASKMODAL);
+#endif // !_WINDOWS_UWP
 			exit(3);
 		}
     }

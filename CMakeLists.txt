@@ -16,6 +16,25 @@ if( COMMAND cmake_policy )
 	endif()
 endif()
 
+if (CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
+	message("Setting Dynamic C/CXX linking")
+	set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+	message("Using vcpkg on WindowsStore")
+	# Force static MD triplet on WindowsStore
+	set(VCPKG_TARGET_TRIPLET "x64-uwp-static-md" CACHE STRING "" FORCE)
+	list(APPEND VCPKG_MANIFEST_FEATURES "vcpkg-libwebp")
+	set(LIBVPX_VCPKG ON CACHE BOOL "Using vcpkg's LIBVPX" FORCE)
+	set(OPENAL_SOFT_VCPKG ON CACHE BOOL "Using vcpkg's OPENAL" FORCE)
+	set(HAVE_VULKAN OFF CACHE BOOL "Enable Vulkan support" FORCE)
+	set(HAVE_GLES2 OFF CACHE BOOL "Enable GLES2 support" FORCE)
+	set( HAVE_VM_JIT OFF )
+	set(VCPKG_OVERLAY_PORTS "${CMAKE_CURRENT_LIST_DIR}/vcpkg_fix" CACHE STRING "" FORCE)
+	message("Using vcpkg overlay ${VCPKG_OVERLAY_PORTS}")
+elseif (CMAKE_SYSTEM_NAME STREQUAL "Windows" OR (NOT CMAKE_SYSTEM_NAME AND CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows"))
+	# Force static triplet on Windows
+	set(VCPKG_TARGET_TRIPLET "x64-windows-static")
+endif()
+
 if (LIBVPX_VCPKG)
 	list(APPEND VCPKG_MANIFEST_FEATURES "vcpkg-libvpx")
 endif()
@@ -230,11 +249,16 @@ if (NOT WebP_FOUND)
 	add_library(WebP::libwebpmux ALIAS PkgConfig::libwebpmux)
 endif()
 
+if (CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
+	find_package( SDL2 REQUIRED )
+endif()
+
+
 include( TargetArch )
 
 target_architecture(TARGET_ARCHITECTURE)
 
-if( ${TARGET_ARCHITECTURE} MATCHES "x86_64" )
+if( ${TARGET_ARCHITECTURE} MATCHES "x86_64" AND NOT CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
 	set( HAVE_VM_JIT ON )
 endif()
 
@@ -356,10 +380,12 @@ endif()
 
 add_subdirectory( libraries/ZWidget )
 
-add_subdirectory( libraries/discordrpc EXCLUDE_FROM_ALL )
-set( DRPC_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/libraries/discordrpc/include" )
-set( DRPC_LIBRARIES discord-rpc )
-set( DRPC_LIBRARY discord-rpc )
+if (NOT CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
+	add_subdirectory( libraries/discordrpc EXCLUDE_FROM_ALL )
+	set( DRPC_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/libraries/discordrpc/include" )
+	set( DRPC_LIBRARIES discord-rpc )
+	set( DRPC_LIBRARY discord-rpc )
+endif()
 
 if( HAVE_VM_JIT AND UNIX )
 	check_symbol_exists( "backtrace" "execinfo.h" HAVE_BACKTRACE )

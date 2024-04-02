@@ -54,7 +54,7 @@ EXTERN_CVAR(Float, vid_contrast)
 EXTERN_CVAR(Int, gl_satformula)
 EXTERN_CVAR(Int, gl_dither_bpc)
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(_WINDOWS_UWP)
 EXTERN_CVAR(Bool, vr_enable_quadbuffered)
 #endif
 
@@ -69,7 +69,7 @@ void UpdateVRModes(bool considerQuadBuffered)
 	for (int i = 0; i < cnt; ++i) {
 		auto const& mode = vals[i];
 		if (mode.Value == 7) {  // Quad-buffered stereo
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(_WINDOWS_UWP)
 			if (!vr_enable_quadbuffered) continue;
 #else
 			continue;  // Remove quad-buffered option on Mac and Linux

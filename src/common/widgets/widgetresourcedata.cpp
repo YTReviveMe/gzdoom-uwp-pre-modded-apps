@@ -58,7 +58,7 @@ std::vector<SingleFontData> LoadWidgetFontData(const std::string& name)
 		returnv[0].fontdata = LoadFile("widgets/noto/notosans-regular.ttf");
 		returnv[1].fontdata = LoadFile("widgets/noto/notosansarmenian-regular.ttf");
 		returnv[2].fontdata = LoadFile("widgets/noto/notosansgeorgian-regular.ttf");
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(_WINDOWS_UWP) 
 		wchar_t wbuffer[256];
 		if (GetWindowsDirectoryW(wbuffer, 256))
 		{

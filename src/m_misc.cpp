@@ -315,7 +315,9 @@ UNSAFE_CCMD (writeini)
 CCMD(openconfig)
 {
 	M_SaveDefaults(nullptr);
+#ifndef _WINDOWS_UWP
 	I_OpenShellFolder(ExtractFilePath(GameConfig->GetPathName()).GetChars());
+#endif
 }
 
 //
@@ -687,7 +689,8 @@ CCMD(openscreenshots)
 	autoname = NicePath(autoname.GetChars());
 
 	CreatePath(autoname.GetChars());
-
+#ifndef _WINDOWS_UWP
 	I_OpenShellFolder(autoname.GetChars());
+#endif
 }
 

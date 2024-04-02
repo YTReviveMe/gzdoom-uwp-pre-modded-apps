@@ -27,7 +27,7 @@ if( APPLE )
     option( OSX_COCOA_BACKEND "Use native Cocoa backend instead of SDL" ON )
 endif()
 
-option( ZDOOM_ENABLE_SWR "Enable software renderer" ON )
+option( ZDOOM_ENABLE_SWR "Enable software renderer" OFF )
 if( NOT ZDOOM_ENABLE_SWR )
 	add_definitions( -DNO_SWRENDERER )
 endif()
@@ -51,7 +51,15 @@ endif()
 
 add_definitions( -DTHIS_IS_GZDOOM )
 
-if( WIN32 )
+if (CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
+	add_definitions( -D_WIN32 )
+	add_definitions( -D_WINDOWS_UWP )
+	add_definitions( -D_WINSOCK_DEPRECATED_NO_WARNINGS )
+	
+	include_directories( SYSTEM "${SDL2_INCLUDE_DIR}" )
+	set( PROJECT_LIBRARIES ${PROJECT_LIBRARIES} "${SDL2_LIBRARY}" )
+	
+elseif( WIN32 )
 
 	add_definitions( -D_WIN32 )
 
@@ -139,7 +147,7 @@ else()
 endif()
 
 if( NOT NO_OPENAL )
-	if ( "vcpkg-openal-soft" IN_LIST VCPKG_MANIFEST_FEATURES )
+	if ( "vcpkg-openal-soft" IN_LIST VCPKG_MANIFEST_FEATURES  AND NOT CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
 		# Statically link to OpenAL from vcpkg
 		find_package( OpenAL CONFIG REQUIRED )
 		list( APPEND PROJECT_LIBRARIES OpenAL::OpenAL )
@@ -319,7 +327,10 @@ add_custom_target( revision_check ALL
 
 # required libraries
 
-set( PROJECT_LIBRARIES ${PROJECT_LIBRARIES} miniz "${BZIP2_LIBRARIES}" "${CMAKE_DL_LIBS}" "${DRPC_LIBRARIES}")
+set( PROJECT_LIBRARIES ${PROJECT_LIBRARIES} miniz "${BZIP2_LIBRARIES}" "${CMAKE_DL_LIBS}")
+if (NOT CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
+	list( APPEND PROJECT_LIBRARIES "${DRPC_LIBRARIES}" )
+endif()
 if (HAVE_VULKAN)
 	list( APPEND PROJECT_LIBRARIES "zvulkan" )
 endif()
@@ -389,7 +400,10 @@ if (TARGET WebP::webp)
 	endif()
 endif()
 
-include_directories( SYSTEM "${BZIP2_INCLUDE_DIR}" "${LZMA_INCLUDE_DIR}" "${ZMUSIC_INCLUDE_DIR}" "${DRPC_INCLUDE_DIR}")
+include_directories( SYSTEM "${BZIP2_INCLUDE_DIR}" "${LZMA_INCLUDE_DIR}" "${ZMUSIC_INCLUDE_DIR}")
+if (NOT CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
+	include_directories( "${DRPC_INCLUDE_DIR}" )
+endif()
 
 if( ${HAVE_VM_JIT} )
 	add_definitions( -DHAVE_VM_JIT )
@@ -431,7 +445,29 @@ if (MSVC AND ${TARGET_ARCHITECTURE} MATCHES "arm")
 	set (PLAT_WIN32_SOURCES ${PLAT_WIN32_SOURCES} common/platform/win32/i_crash_arm.cpp )
 	add_definitions( -DNO_SSE -D__ARM__ -DRAPIDJSON_ENDIAN=RAPIDJSON_LITTLEENDIAN)
 endif()
-	
+
+set( PLAT_UWP_SOURCES
+	win32/i_steam.cpp
+	common/platform/uwp/system_uwp.cpp
+	common/platform/uwp/i_system_uwp.cpp
+	common/platform/uwp/i_specialpaths.cpp
+	common/platform/uwp/Package.appxmanifest
+)
+
+if (CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
+	set_source_files_properties (common/platform/uwp/system_uwp.cpp PROPERTIES COMPILE_OPTIONS "-permissive;-ZW")
+endif()
+
+set( PLAT_UWP_SDL_SOURCES
+	common/platform/uwp/sdl/hardware.cpp
+	common/platform/uwp/sdl/i_gui.cpp
+	common/platform/uwp/sdl/i_input.cpp
+	common/platform/uwp/sdl/i_joystick.cpp
+	common/platform/uwp/sdl/i_main.cpp
+	common/platform/uwp/sdl/i_system.cpp
+	common/platform/uwp/sdl/sdlglvideo.cpp
+	common/platform/uwp/sdl/st_start.cpp )
+
 set( PLAT_POSIX_SOURCES
 	posix/i_steam.cpp
 	common/platform/posix/i_system_posix.cpp )
@@ -461,7 +497,11 @@ set( PLAT_COCOA_SOURCES
 	common/platform/posix/cocoa/st_console.mm
 	common/platform/posix/cocoa/st_start.mm )
 
-if( WIN32 )
+if(CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
+	set( SYSTEM_SOURCES_DIR common/platform/uwp common/platform/uwp/sdl )
+	set( SYSTEM_SOURCES ${PLAT_UWP_SOURCES} ${PLAT_UWP_SDL_SOURCES} )
+	set( OTHER_SYSTEM_SOURCES ${PLAT_WIN32_SOURCES} ${PLAT_OSX_SOURCES} ${PLAT_COCOA_SOURCES} ${PLAT_UNIX_SOURCES} )
+elseif( WIN32 )
 	set( SYSTEM_SOURCES_DIR common/platform/win32 )
 	set( SYSTEM_SOURCES ${PLAT_WIN32_SOURCES} )
 	set( OTHER_SYSTEM_SOURCES ${PLAT_POSIX_SOURCES} ${PLAT_SDL_SOURCES} ${PLAT_OSX_SOURCES} ${PLAT_COCOA_SOURCES} ${PLAT_UNIX_SOURCES} )
@@ -545,7 +585,7 @@ add_custom_command( OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/sc_man_scanner.h
 
 include_directories( ${CMAKE_CURRENT_BINARY_DIR} )
 
-option( SEND_ANON_STATS "Enable sending of anonymous hardware statistics" ON )
+option( SEND_ANON_STATS "Enable sending of anonymous hardware statistics" OFF )
 
 if( NOT SEND_ANON_STATS )
 	add_definitions( -DNO_SEND_STATS )
@@ -793,7 +833,7 @@ endif()
 set (FASTMATH_SOURCES ${FASTMATH_SOURCES})
 
 set (PCH_SOURCES
-	common/thirdparty/richpresence.cpp
+	#common/thirdparty/richpresence.cpp
 	am_map.cpp
 	playsim/bots/b_bot.cpp
 	playsim/bots/b_func.cpp
@@ -1186,6 +1226,11 @@ set (PCH_SOURCES
 	utility/nodebuilder/nodebuild_utility.cpp
 )
 
+if (NOT CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
+	set (PCH_SOURCES ${PCH_SOURCES} common/thirdparty/richpresence.cpp )
+endif()
+
+
 if( ${HAVE_VM_JIT} )
 	set( PCH_SOURCES ${PCH_SOURCES} ${VM_JIT_SOURCES} )
 else()
@@ -1362,7 +1407,100 @@ else()
 	)
 endif()
 
-if( MSVC )
+
+#Thanks flyinghead
+if (CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
+	message("Adding UWP resources")
+	message("ZMusic:" ${ZMUSIC_LIBRARIES})
+	message("SDL2_LIBRARY:" ${SDL2_LIBRARY})
+
+	#file(READ common/platform/uwp/Package.appxmanifest MANIFEST)
+	#string(REPLACE "9.9.9.9" ${MS_VERSION} MANIFEST ${MANIFEST})
+	#file(WRITE ${CMAKE_BINARY_DIR}/Package.appxmanifest ${MANIFEST})
+	set(ResourceFiles 
+		common/platform/uwp/Package.appxmanifest
+		common/platform/uwp/gzdoom_TemporaryKey.pfx
+		${SDL2_INCLUDE_DIR}/../src/main/winrt/SDL2-WinRTResource_BlankCursor.cur
+		${SDL2_INCLUDE_DIR}/../src/main/winrt/SDL2-WinRTResources.rc
+	)
+
+	set(AssetFiles
+		common/platform/uwp/assets/LockScreenLogo.scale-200.png
+		common/platform/uwp/assets/SplashScreen.scale-200.png
+		common/platform/uwp/assets/Square44x44Logo.scale-200.png
+		common/platform/uwp/assets/Square44x44Logo.targetsize-24_altform-unplated.png
+		common/platform/uwp/assets/Square150x150Logo.scale-200.png
+		common/platform/uwp/assets/StoreLogo.png
+		common/platform/uwp/assets/Wide310x150Logo.scale-200.png
+	)
+
+	set(SoundFonts
+		${CMAKE_SOURCE_DIR}/soundfont/gzdoom.sf2
+	)
+	
+	set(FMBanks
+		${CMAKE_SOURCE_DIR}/fm_banks/GENMIDI.GS.wopl
+		${CMAKE_SOURCE_DIR}/fm_banks/gs-by-papiezak-and-sneakernets.wopn
+	)
+
+	set(DepFiles
+		${CMAKE_BINARY_DIR}/brightmaps.pk3
+		${CMAKE_BINARY_DIR}/game_support.pk3
+		${CMAKE_BINARY_DIR}/game_widescreen_gfx.pk3
+		${CMAKE_BINARY_DIR}/gzdoom.pk3
+		${CMAKE_BINARY_DIR}/lights.pk3
+		C:/Program\ Files\ \(x86\)/Windows\ Kits/10/Redist/D3D/x64/dxil.dll
+		${CMAKE_BINARY_DIR}/mesa-uwp/opengl32.dll
+		${CMAKE_BINARY_DIR}/mesa-uwp/libglapi.dll
+		${CMAKE_BINARY_DIR}/mesa-uwp/libgallium_wgl.dll
+		${CMAKE_BINARY_DIR}/mesa-uwp/z-1.dll
+		${CMAKE_BINARY_DIR}/SDL-uwp-gl/VisualC-WinRT/x64/Release/SDL-UWP/SDL2.dll
+		${CMAKE_BINARY_DIR}/openal-soft/build/Release/OpenAL32.dll
+		${CMAKE_BINARY_DIR}/ZMusic-uwp/build/source/Release/zmusic.dll
+		${CMAKE_BINARY_DIR}/ZMusic-uwp/build/source/Release/FLAC.dll
+		${CMAKE_BINARY_DIR}/ZMusic-uwp/build/source/Release/libmp3lame.dll
+		${CMAKE_BINARY_DIR}/ZMusic-uwp/build/source/Release/mpg123.dll
+		${CMAKE_BINARY_DIR}/ZMusic-uwp/build/source/Release/ogg.dll
+		${CMAKE_BINARY_DIR}/ZMusic-uwp/build/source/Release/opus.dll
+		${CMAKE_BINARY_DIR}/ZMusic-uwp/build/source/Release/sndfile.dll
+		${CMAKE_BINARY_DIR}/ZMusic-uwp/build/source/Release/vorbis.dll
+		${CMAKE_BINARY_DIR}/ZMusic-uwp/build/source/Release/vorbisenc.dll
+	)
+
+	target_sources(zdoom PRIVATE
+		${ResourceFiles}
+		${AssetFiles}
+		${DepFiles}
+		${SoundFonts}
+		${FMBanks}
+		${SDL2_INCLUDE_DIR}/../src/main/winrt/SDL_winrt_main_NonXAML.cpp)
+	set_source_files_properties (${SDL2_INCLUDE_DIR}/../src/main/winrt/SDL_winrt_main_NonXAML.cpp 
+		PROPERTIES COMPILE_OPTIONS "-permissive;-ZW")
+	set_source_files_properties( ${SDL2_INCLUDE_DIR}/../src/main/winrt/SDL_winrt_main_NonXAML.cpp PROPERTIES SKIP_PRECOMPILE_HEADERS TRUE )
+	
+	set_property(SOURCE ${AssetFiles} PROPERTY VS_DEPLOYMENT_CONTENT 1)
+	set_property(SOURCE ${AssetFiles} PROPERTY VS_DEPLOYMENT_LOCATION "Assets")
+
+	set_property(SOURCE ${DepFiles} PROPERTY VS_DEPLOYMENT_CONTENT 1)
+	set_property(SOURCE ${DepFiles} PROPERTY VS_DEPLOYMENT_LOCATION ".")
+
+	set_property(SOURCE ${SoundFonts} PROPERTY VS_DEPLOYMENT_CONTENT 1)
+	set_property(SOURCE ${SoundFonts} PROPERTY VS_DEPLOYMENT_LOCATION "soundfonts")
+	
+	set_property(SOURCE ${FMBanks} PROPERTY VS_DEPLOYMENT_CONTENT 1)
+	set_property(SOURCE ${FMBanks} PROPERTY VS_DEPLOYMENT_LOCATION "fm_banks")
+	
+	set_target_properties(zdoom PROPERTIES RESOURCE 
+		"${ResourceFiles} ${DepFiles} ${AssetFiles} ${FMBanks} ${SoundFonts}")
+	
+	target_link_options(zdoom PRIVATE 
+		/nodefaultlib:vccorlib$<$<CONFIG:Debug>:d>
+		/nodefaultlib:msvcrt$<$<CONFIG:Debug>:d>
+		vccorlib$<$<CONFIG:Debug>:d>.lib 
+		msvcrt$<$<CONFIG:Debug>:d>.lib)
+
+	set( LINKERSTUFF "/MANIFEST:NO" )
+elseif( MSVC )
 	option( ZDOOM_GENERATE_MAPFILE "Generate .map file for debugging." OFF )
 	set( LINKERSTUFF "/MANIFEST:NO" )
 
@@ -1511,6 +1649,7 @@ source_group("Common\\Platforms\\OS X Files" REGULAR_EXPRESSION "^${CMAKE_CURREN
 source_group("Common\\Platforms\\Unix Files" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/common/platform/posix/unix/.+")
 source_group("Common\\Platforms\\SDL Files" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/common/platform/posix/sdl/.+")
 source_group("Common\\Platforms\\Win32 Files" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/common/platform/win32/.+")
+source_group("Common\\Platforms\\UWP Files" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/common/platform/uwp/.+")
 source_group("Common\\Rendering" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/common/rendering/.+")
 source_group("Common\\Rendering\\Hardware Renderer" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/common/rendering/hwrenderer/.+")
 source_group("Common\\Rendering\\Hardware Renderer\\Data" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/common/rendering/hwrenderer/data/.+")

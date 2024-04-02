@@ -274,7 +274,7 @@ bool FLevelLocals::EV_DoPlat (int tag, line_t *line, DPlat::EPlatType type, doub
 	bool rtn = false;
 	bool manual = false;
 	double newheight = 0;
-	vertex_t *spot;
+	vertex_t *spot = nullptr;
 
 	if (tag != 0)
 	{

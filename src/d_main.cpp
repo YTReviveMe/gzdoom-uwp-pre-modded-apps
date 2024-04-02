@@ -155,7 +155,9 @@ void M_SaveDefaultsFinal();
 void R_Shutdown();
 void I_ShutdownInput();
 void SetConsoleNotifyBuffer();
+#ifndef _WINDOWS_UWP
 void I_UpdateDiscordPresence(bool SendPresence, const char* curstatus, const char* appid, const char* steamappid);
+#endif
 bool M_SetSpecialMenu(FName& menu, int param);	// game specific checks
 
 const FIWADInfo *D_FindIWAD(TArray<FString> &wadfiles, const char *iwad, const char *basewad);
@@ -3967,7 +3969,9 @@ void I_UpdateWindowTitle()
 		titlestr = GameStartupInfo.Name;
 		break;
 	default:
+#ifndef _WINDOWS_UWP
 		I_UpdateDiscordPresence(false, NULL, GameStartupInfo.DiscordAppId.GetChars(), GameStartupInfo.SteamAppId.GetChars());
+#endif
 		I_SetWindowTitle(NULL);
 		return;
 	}
@@ -3997,10 +4001,12 @@ void I_UpdateWindowTitle()
 		}
 	}
 	*dstp = 0;
+#ifndef _WINDOWS_UWP
 	if (i_discordrpc)
 		I_UpdateDiscordPresence(true, copy.Data(), GameStartupInfo.DiscordAppId.GetChars(), GameStartupInfo.SteamAppId.GetChars());
 	else
 		I_UpdateDiscordPresence(false, nullptr, nullptr, nullptr);
+#endif
 	I_SetWindowTitle(copy.Data());
 }
 

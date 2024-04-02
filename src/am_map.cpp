@@ -2960,7 +2960,7 @@ void DAutomap::drawThings ()
 				if (am_showthingsprites > 0 && t->sprite > 0)
 				{
 					FGameTexture *texture = nullptr;
-					spriteframe_t *frame;
+					spriteframe_t *frame = nullptr;
 					int rotation = 0;
 
 					// try all modes backwards until a valid texture has been found.
@@ -3113,7 +3113,7 @@ void DAutomap::DrawMarker (FGameTexture *tex, double x, double y, int yadjust,
 
 void DAutomap::drawMarks ()
 {
-	FFont* font;
+	FFont* font = nullptr;
 	bool fontloaded = false;
 
 	for (int i = 0; i < AM_NUMMARKPOINTS; i++)

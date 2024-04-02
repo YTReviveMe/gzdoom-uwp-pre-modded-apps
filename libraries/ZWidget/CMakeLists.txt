@@ -117,7 +117,13 @@ source_group("include\\window\\sdl2" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_
 
 include_directories(include include/zwidget src)
 
-if(WIN32)
+
+if(CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
+	set(ZWIDGET_SOURCES ${ZWIDGET_SOURCES} ${ZWIDGET_SDL2_SOURCES})
+	include_directories( SYSTEM "${SDL2_INCLUDE_DIR}" )
+	set( ZWIDGET_LIBS ${ZWIDGET_LIBS} "${SDL2_LIBRARY}" )
+	add_definitions( -D_WINDOWS_UWP )
+elseif(WIN32)
 	set(ZWIDGET_SOURCES ${ZWIDGET_SOURCES} ${ZWIDGET_WIN32_SOURCES})
 	add_definitions(-DUNICODE -D_UNICODE)
 elseif(APPLE)
@@ -144,6 +150,8 @@ add_library(zwidget STATIC ${ZWIDGET_SOURCES} ${ZWIDGET_INCLUDES})
 target_link_libraries(zwidget ${ZWIDGET_LIBS})
 set_target_properties(zwidget PROPERTIES CXX_STANDARD 17)
 
-if(MSVC)
+if (CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
+	set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+elseif(MSVC)
 	set_property(TARGET zwidget PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()

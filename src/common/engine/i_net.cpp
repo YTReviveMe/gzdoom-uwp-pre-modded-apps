@@ -53,7 +53,11 @@
 #ifdef __WIN32__
 #	define WIN32_LEAN_AND_MEAN
 #	include <windows.h>
+#ifndef _WINDOWS_UWP
 #	include <winsock.h>
+#else
+#	include <winsock2.h>
+#endif
 #else
 #	include <sys/socket.h>
 #	include <netinet/in.h>
